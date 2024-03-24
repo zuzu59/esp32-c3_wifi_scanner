@@ -1,5 +1,5 @@
 // Super petit scanner WIFI à base d'ESP32-c3 avec résultat sur DumbDisplay sur le smartphone ;-)
-// zf240324.1752
+// zf240324.1917
 //
 // Sources:
 // https://deepbluembedded.com/esp32-wifi-scanner-example-arduino/
@@ -20,35 +20,71 @@ void setup_WIFI() {
 }
 
 
-// // DumbDisplay library
-// #include "esp32bledumbdisplay.h"
-// // - use ESP32 BLE with name "ESP32C3"
-// // - at the same time, enable Serial connection with 115200 baud 
-// DumbDisplay dumbdisplay(new DDBLESerialIO("ESP32C3_NEZ", true, 115200));
+// Redirection de la console
+#define CONSOLE(...)                                                                                                   \
+  do                                                                                                                   \
+  {                                                                                                                    \
+    USBSerial.print(__VA_ARGS__);                                                                                         \
+    terminal->print(__VA_ARGS__);                                                                                         \
+  } while (0)
+
+#define CONSOLELN(...)                                                                                                 \
+  do                                                                                                                   \
+  {                                                                                                                    \
+    USBSerial.println(__VA_ARGS__);                                                                                       \
+    terminal->println(__VA_ARGS__);                                                                                       \
+  } while (0)
+
+#define CONSOLEF(...)                                                                                                 \
+  do                                                                                                                   \
+  {                                                                                                                    \
+    USBSerial.printf(__VA_ARGS__);                                                                                       \
+  } while (0)
+
+
+
+
+
+// DumbDisplay library
+#include "esp32bledumbdisplay.h"
+// - use ESP32 BLE with name "ESP32C3"
+// - at the same time, enable Serial connection with 115200 baud 
+DumbDisplay dumbdisplay(new DDBLESerialIO("WIFI_SCANNER", true, 115200));
+TerminalDDLayer* terminal;      // for showing trace of reading data
+
 // PlotterDDLayer *pPlotter;
 // LcdDDLayer *lcd;
 
 
-// void setup_DD() {
-//   // create a plotter layer that shows the angle, and for more fun, sin and cos of the angle
-//   pPlotter = dumbdisplay.createPlotterLayer(1000, 1000);
-//   pPlotter->padding(10);
-//   pPlotter->opacity(100);
-//   // pPlotter->opacity(25);
-//   pPlotter->noBackgroundColor();
-//   // pPlotter->backgroundColor("red");
-//   pPlotter->label("Sensor multichannel");
+void setup_DD() {
 
-//   // create a LCD layers with x rows of y characters
-//   lcd = dumbdisplay.createLcdLayer(20, 2);
-//     // set LCD colors and print out something
-//   lcd->pixelColor("black");
-//   lcd->bgPixelColor("lightgray");
-//   lcd->backgroundColor("lightgray");
+  terminal = dumbdisplay.createTerminalLayer(1000, 1000);
+  terminal->border(5, "blue");
+  terminal->padding(5);
 
-//   // "auto pin" the layers vertically
-//   dumbdisplay.configAutoPin(DD_AP_VERT);
-//   } 
+
+  // // create a plotter layer that shows the angle, and for more fun, sin and cos of the angle
+  // pPlotter = dumbdisplay.createPlotterLayer(1000, 1000);
+  // pPlotter->padding(10);
+  // pPlotter->opacity(100);
+  // // pPlotter->opacity(25);
+  // pPlotter->noBackgroundColor();
+  // // pPlotter->backgroundColor("red");
+  // pPlotter->label("Sensor multichannel");
+
+  // // create a LCD layers with x rows of y characters
+  // lcd = dumbdisplay.createLcdLayer(20, 2);
+  //   // set LCD colors and print out something
+  // lcd->pixelColor("black");
+  // lcd->bgPixelColor("lightgray");
+  // lcd->backgroundColor("lightgray");
+
+
+
+
+  // "auto pin" the layers vertically
+  dumbdisplay.configAutoPin(DD_AP_VERT);
+  } 
 
 
 
@@ -58,75 +94,75 @@ void setup_WIFI() {
 void setup() {
     USBSerial.begin(19200);
     delay(3000);  //le temps de passer sur la Serial Monitor ;-)
-    USBSerial.println("\n\n\n\nCa commence !\n");
+    CONSOLELN("\n\n\n\nCa commence !\n");
     
-    // setup_DD();   //configure DumbDisplay
+    setup_DD();   //configure DumbDisplay
 
     setup_WIFI();
 
-    USBSerial.println("C'est parti !\n");
+    CONSOLELN("C'est parti !\n");
 }
 
 
 void loop() {
-    USBSerial.println("Scan start");
+    CONSOLELN("Scan start");
 
     // WiFi.scanNetworks will return the number of networks found.
     int n = WiFi.scanNetworks();
-    USBSerial.println("Scan done");
+    CONSOLELN("Scan done");
     if (n == 0) {
-        USBSerial.println("no networks found");
+        CONSOLELN("no networks found");
     } else {
-        USBSerial.print(n);
-        USBSerial.println(" networks found");
-        USBSerial.println("Nr | SSID                             | RSSI | CH | Encryption");
+        CONSOLE(n);
+        CONSOLELN(" networks found");
+        CONSOLELN("Nr | SSID                             | RSSI | CH | Encryption");
         for (int i = 0; i < n; ++i) {
             // Print SSID and RSSI for each network found
-            USBSerial.printf("%2d",i + 1);
-            USBSerial.print(" | ");
-            USBSerial.printf("%-32.32s", WiFi.SSID(i).c_str());
-            USBSerial.print(" | ");
-            USBSerial.printf("%4d", WiFi.RSSI(i));
-            USBSerial.print(" | ");
-            USBSerial.printf("%2d", WiFi.channel(i));
-            USBSerial.print(" | ");
+            CONSOLEF("%2d",i + 1);
+            CONSOLE(" | ");
+            CONSOLEF("%-32.32s", WiFi.SSID(i).c_str());
+            CONSOLE(" | ");
+            CONSOLEF("%4d", WiFi.RSSI(i));
+            CONSOLE(" | ");
+            CONSOLEF("%2d", WiFi.channel(i));
+            CONSOLE(" | ");
             switch (WiFi.encryptionType(i))
             {
             case WIFI_AUTH_OPEN:
-                USBSerial.print("open");
+                CONSOLE("open");
                 break;
             case WIFI_AUTH_WEP:
-                USBSerial.print("WEP");
+                CONSOLE("WEP");
                 break;
             case WIFI_AUTH_WPA_PSK:
-                USBSerial.print("WPA");
+                CONSOLE("WPA");
                 break;
             case WIFI_AUTH_WPA2_PSK:
-                USBSerial.print("WPA2");
+                CONSOLE("WPA2");
                 break;
             case WIFI_AUTH_WPA_WPA2_PSK:
-                USBSerial.print("WPA+WPA2");
+                CONSOLE("WPA+WPA2");
                 break;
             case WIFI_AUTH_WPA2_ENTERPRISE:
-                USBSerial.print("WPA2-EAP");
+                CONSOLE("WPA2-EAP");
                 break;
             case WIFI_AUTH_WPA3_PSK:
-                USBSerial.print("WPA3");
+                CONSOLE("WPA3");
                 break;
             case WIFI_AUTH_WPA2_WPA3_PSK:
-                USBSerial.print("WPA2+WPA3");
+                CONSOLE("WPA2+WPA3");
                 break;
             case WIFI_AUTH_WAPI_PSK:
-                USBSerial.print("WAPI");
+                CONSOLE("WAPI");
                 break;
             default:
-                USBSerial.print("unknown");
+                CONSOLE("unknown");
             }
-            USBSerial.println();
+            CONSOLELN();
             delay(10);
         }
     }
-    USBSerial.println("");
+    CONSOLELN("");
 
     // Delete the scan result to free memory for code below.
     WiFi.scanDelete();
