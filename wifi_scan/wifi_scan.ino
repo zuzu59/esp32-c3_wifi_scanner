@@ -1,5 +1,5 @@
 // Super petit scanner WIFI à base d'ESP32-c3 avec résultat sur DumbDisplay sur le smartphone ;-)
-// zf240325.1204
+// zf240325.1214
 //
 // Sources:
 // https://deepbluembedded.com/esp32-wifi-scanner-example-arduino/
@@ -64,50 +64,23 @@ void loop() {
     } else {
         USBSerial.print(n);
         USBSerial.println(" networks found");
-        USBSerial.println("Nr | SSID                             | RSSI | CH | Encryption");
+        USBSerial.println("Nr, SSID, RSSI, CH");
         for (int i = 0; i < n; ++i) {
             // Print SSID and RSSI for each network found
-            USBSerial.printf("%2d",i + 1);
-            USBSerial.print(" | ");
-            USBSerial.printf("%-32.32s", WiFi.SSID(i).c_str());
-            USBSerial.print(" | ");
-            USBSerial.printf("%4d", WiFi.RSSI(i));
-            USBSerial.print(" | ");
-            USBSerial.printf("%2d", WiFi.channel(i));
-            USBSerial.print(" | ");
-            switch (WiFi.encryptionType(i))
-            {
-            case WIFI_AUTH_OPEN:
-                USBSerial.print("open");
-                break;
-            case WIFI_AUTH_WEP:
-                USBSerial.print("WEP");
-                break;
-            case WIFI_AUTH_WPA_PSK:
-                USBSerial.print("WPA");
-                break;
-            case WIFI_AUTH_WPA2_PSK:
-                USBSerial.print("WPA2");
-                break;
-            case WIFI_AUTH_WPA_WPA2_PSK:
-                USBSerial.print("WPA+WPA2");
-                break;
-            case WIFI_AUTH_WPA2_ENTERPRISE:
-                USBSerial.print("WPA2-EAP");
-                break;
-            case WIFI_AUTH_WPA3_PSK:
-                USBSerial.print("WPA3");
-                break;
-            case WIFI_AUTH_WPA2_WPA3_PSK:
-                USBSerial.print("WPA2+WPA3");
-                break;
-            case WIFI_AUTH_WAPI_PSK:
-                USBSerial.print("WAPI");
-                break;
-            default:
-                USBSerial.print("unknown");
-            }
-            USBSerial.println();
+            // USBSerial.print(i);
+            // USBSerial.print(", ");
+            // // USBSerial.printf("%-32.32s", WiFi.SSID(i).c_str());
+            // USBSerial.print(WiFi.SSID(i));
+            // USBSerial.print(", ");
+            // USBSerial.print(WiFi.RSSI(i));
+            // USBSerial.print(", ");
+            // USBSerial.print(WiFi.channel(i));
+
+            // USBSerial.println();
+            String zString = String(i) + ", " + WiFi.SSID(i) + ", " + WiFi.RSSI(i) + ", " + WiFi.channel(i);
+            USBSerial.println(zString);
+            terminal->println(zString);
+
             delay(10);
         }
     }
