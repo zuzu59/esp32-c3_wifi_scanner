@@ -1,5 +1,5 @@
 // Super petit scanner WIFI à base d'ESP32-c3 avec résultat sur DumbDisplay sur le smartphone ;-)
-// zf240325.1214
+// zf240325.1412
 //
 // Sources:
 // https://deepbluembedded.com/esp32-wifi-scanner-example-arduino/
@@ -28,7 +28,7 @@ DumbDisplay dumbdisplay(new DDBLESerialIO("WIFI_SCANNER", true, 115200));
 TerminalDDLayer* terminal;      // for showing trace of reading data
 
 void setup_DD() {
-  terminal = dumbdisplay.createTerminalLayer(1000, 1000);
+  terminal = dumbdisplay.createTerminalLayer(1500, 1000);
   terminal->border(5, "blue");
   terminal->padding(5);
   dumbdisplay.configAutoPin(DD_AP_VERT);
@@ -55,33 +55,26 @@ void setup() {
 
 void loop() {
     USBSerial.println("Scan start");
+    terminal->println("Scan start");
 
     // WiFi.scanNetworks will return the number of networks found.
     int n = WiFi.scanNetworks();
     USBSerial.println("Scan done");
+    terminal->println("Scan done");
     if (n == 0) {
         USBSerial.println("no networks found");
+        terminal->println("no networks found");
     } else {
         USBSerial.print(n);
+        terminal->print(n);
         USBSerial.println(" networks found");
+        terminal->println(" networks found");
         USBSerial.println("Nr, SSID, RSSI, CH");
+        terminal->println("Nr, SSID, RSSI, CH");
         for (int i = 0; i < n; ++i) {
-            // Print SSID and RSSI for each network found
-            // USBSerial.print(i);
-            // USBSerial.print(", ");
-            // // USBSerial.printf("%-32.32s", WiFi.SSID(i).c_str());
-            // USBSerial.print(WiFi.SSID(i));
-            // USBSerial.print(", ");
-            // USBSerial.print(WiFi.RSSI(i));
-            // USBSerial.print(", ");
-            // USBSerial.print(WiFi.channel(i));
-
-            // USBSerial.println();
-            String zString = String(i) + ", " + WiFi.SSID(i) + ", " + WiFi.RSSI(i) + ", " + WiFi.channel(i);
+            String zString = String(i+1) + ", " + WiFi.SSID(i) + ", " + WiFi.RSSI(i) + ", " + WiFi.channel(i);
             USBSerial.println(zString);
             terminal->println(zString);
-
-            delay(10);
         }
     }
     USBSerial.println("");
@@ -90,7 +83,7 @@ void loop() {
     WiFi.scanDelete();
 
     // Wait a bit before scanning again.
-    delay(5000);
+    delay(500);
 
     // zString = "NO2:" + String(NO2) + "  EtOH:" + String(C2H5OH) + "    "    ;
     // lcd->setCursor(0, 0);
