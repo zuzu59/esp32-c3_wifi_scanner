@@ -1,5 +1,5 @@
 // Super petit scanner WIFI à base d'ESP32-c3 avec résultat sur DumbDisplay sur le smartphone ;-)
-// zf240325.1412
+// zf240325.1845
 //
 // Sources:
 // https://deepbluembedded.com/esp32-wifi-scanner-example-arduino/
@@ -7,6 +7,17 @@
 // https://github.com/trevorwslee/Arduino-DumbDisplay/blob/master/projects/servo/servo.ino
 // https://github.com/trevorwslee/Arduino-DumbDisplay
 // https://github.com/trevorwslee/Arduino-DumbDisplay/blob/master/projects/ddgpsmap/ddgpsmap.ino
+
+
+
+#define CONSOLEFLN(...)                 \
+  do                                    \
+  {                                     \
+    char zString[40];                   \
+    sprintf(zString,__VA_ARGS__);       \
+    USBSerial.println(zString);         \
+    terminal->println(zString);         \
+  } while (0)
 
 
 // WIFI library
@@ -19,10 +30,9 @@ void setup_WIFI() {
 }
 
 
-
 // DumbDisplay library
 #include "esp32bledumbdisplay.h"
-// - use ESP32 BLE with name "ESP32C3"
+// - use ESP32 BLE with name "WIFI_SCANNER"
 // - at the same time, enable Serial connection with 115200 baud 
 DumbDisplay dumbdisplay(new DDBLESerialIO("WIFI_SCANNER", true, 115200));
 TerminalDDLayer* terminal;      // for showing trace of reading data
@@ -35,63 +45,36 @@ void setup_DD() {
   } 
 
 
-
-
-
-
 void setup() {
     USBSerial.begin(19200);
     delay(3000);  //le temps de passer sur la Serial Monitor ;-)
     USBSerial.println("\n\n\n\nCa commence !\n");
     
-    setup_DD();   //configure DumbDisplay
+    setup_DD();     //configure DumbDisplay
 
-    setup_WIFI();
+    setup_WIFI();   //configure WIFI
 
-    USBSerial.println("C'est parti !");
-    terminal->println("C'est parti !");
+    CONSOLEFLN("C'est parti !");
+    CONSOLEFLN("");
 }
 
 
 void loop() {
-    USBSerial.println("Scan start");
-    terminal->println("Scan start");
-
+    CONSOLEFLN("Scan start");
     // WiFi.scanNetworks will return the number of networks found.
     int n = WiFi.scanNetworks();
-    USBSerial.println("Scan done");
-    terminal->println("Scan done");
+    CONSOLEFLN("Scan done");
     if (n == 0) {
-        USBSerial.println("no networks found");
-        terminal->println("no networks found");
+        CONSOLEFLN("no networks found");
     } else {
-        USBSerial.print(n);
-        terminal->print(n);
-        USBSerial.println(" networks found");
-        terminal->println(" networks found");
-        USBSerial.println("Nr, SSID, RSSI, CH");
-        terminal->println("Nr, SSID, RSSI, CH");
+        CONSOLEFLN("%d networks found", n);
+        CONSOLEFLN("Nr, SSID, RSSI, CH");
         for (int i = 0; i < n; ++i) {
-            String zString = String(i+1) + ", " + WiFi.SSID(i) + ", " + WiFi.RSSI(i) + ", " + WiFi.channel(i);
-            USBSerial.println(zString);
-            terminal->println(zString);
+            CONSOLEFLN("%d, %s, %d, %d", i+1, WiFi.SSID(i), WiFi.RSSI(i), WiFi.channel(i));
         }
     }
-    USBSerial.println("");
-
+    CONSOLEFLN("");
     // Delete the scan result to free memory for code below.
     WiFi.scanDelete();
-
-    // Wait a bit before scanning again.
-    delay(500);
-
-    // zString = "NO2:" + String(NO2) + "  EtOH:" + String(C2H5OH) + "    "    ;
-    // lcd->setCursor(0, 0);
-    // lcd->print(zString);
-    // zString = "VOC:" + String(VOC) + "  CO:" + String(CO) + "    "          ;
-    // lcd->setCursor(0, 1);
-    // lcd->print(zString);
-
-    // delay(100);
 }
 
