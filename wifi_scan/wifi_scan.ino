@@ -1,13 +1,12 @@
 // Super petit scanner WIFI à base d'ESP32-c3 avec résultat sur DumbDisplay sur le smartphone ;-)
-// zf240327.1105
+// zf240327.1114
 //
 // ATTENTION, tant qu'il n'y a pas eu de connexion à DumbDisplay, c'est bloqué en attente de connexion BLE !
 //
 // Sources:
 // https://deepbluembedded.com/esp32-wifi-scanner-example-arduino/
-// https://github.com/trevorwslee/Arduino-DumbDisplay/blob/master/samples/esp32c3ddblink/esp32c3ddblink.ino
-// https://github.com/trevorwslee/Arduino-DumbDisplay/blob/master/projects/servo/servo.ino
 // https://github.com/trevorwslee/Arduino-DumbDisplay
+// https://github.com/trevorwslee/Arduino-DumbDisplay/blob/master/samples/esp32c3ddblink/esp32c3ddblink.ino
 // https://github.com/trevorwslee/Arduino-DumbDisplay/blob/master/projects/ddgpsmap/ddgpsmap.ino
 
 
