@@ -1,5 +1,7 @@
 // Super petit scanner WIFI à base d'ESP32-c3 avec résultat sur DumbDisplay sur le smartphone ;-)
-// zf240325.1845
+// zf240327.1105
+//
+// ATTENTION, tant qu'il n'y a pas eu de connexion à DumbDisplay, c'est bloqué en attente de connexion BLE !
 //
 // Sources:
 // https://deepbluembedded.com/esp32-wifi-scanner-example-arduino/
@@ -9,7 +11,15 @@
 // https://github.com/trevorwslee/Arduino-DumbDisplay/blob/master/projects/ddgpsmap/ddgpsmap.ino
 
 
+// General pour AI-C3 DUAL USBC esp32-c3 grand modèle avec LED RGB !
+// const int ledPin = 20;    // the number of the LED pin, c'est une LED RGB sur ce modèle
+const int buttonPin = 9;  // the number of the pushbutton pin
 
+// configuration du NeoPixel (LED RGB) pour ce modèle !
+#define RGB_BRIGHTNESS 10     // LED RGB brightness (max 255)
+#define RGB_BUILTIN 8         // Pin de la led RGB !
+
+// configuration de la console 'commune' (ATTENTION au saut de ligne '\' !)
 #define CONSOLEFLN(...)                 \
   do                                    \
   {                                     \
@@ -38,7 +48,7 @@ DumbDisplay dumbdisplay(new DDBLESerialIO("WIFI_SCANNER", true, 115200));
 TerminalDDLayer* terminal;      // for showing trace of reading data
 
 void setup_DD() {
-  terminal = dumbdisplay.createTerminalLayer(1500, 1000);
+  terminal = dumbdisplay.createTerminalLayer(1000, 1000);
   terminal->border(5, "blue");
   terminal->padding(5);
   dumbdisplay.configAutoPin(DD_AP_VERT);
@@ -46,24 +56,30 @@ void setup_DD() {
 
 
 void setup() {
+    neopixelWrite(RGB_BUILTIN,RGB_BRIGHTNESS,0,0); 
     USBSerial.begin(19200);
     delay(3000);  //le temps de passer sur la Serial Monitor ;-)
     USBSerial.println("\n\n\n\nCa commence !\n");
-    
+    neopixelWrite(RGB_BUILTIN,0,0,RGB_BRIGHTNESS); 
+
     setup_DD();     //configure DumbDisplay
 
     setup_WIFI();   //configure WIFI
 
     CONSOLEFLN("C'est parti !");
     CONSOLEFLN("");
+    neopixelWrite(RGB_BUILTIN,RGB_BRIGHTNESS,RGB_BRIGHTNESS,RGB_BRIGHTNESS); 
+    delay(500);
 }
 
 
 void loop() {
     CONSOLEFLN("Scan start");
+    neopixelWrite(RGB_BUILTIN,0,0,0); 
     // WiFi.scanNetworks will return the number of networks found.
     int n = WiFi.scanNetworks();
     CONSOLEFLN("Scan done");
+    neopixelWrite(RGB_BUILTIN,0,RGB_BRIGHTNESS,0); 
     if (n == 0) {
         CONSOLEFLN("no networks found");
     } else {
