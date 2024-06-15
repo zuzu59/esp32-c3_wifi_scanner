@@ -1,5 +1,7 @@
-// Super petit scanner WIFI à base d'ESP32-c3 avec résultat sur DumbDisplay sur le smartphone ;-)
-// zf240327.1114
+// Super petit scanner WIFI à base d'ESP32-c3 super mini avec résultat sur DumbDisplay sur le smartphone ;-)
+#define zVERSION        "zf240615.1812"
+//
+// ATTENTION, ce code a été testé sur un esp32-c3 super mini. Pas testé sur les autres boards !
 //
 // ATTENTION, tant qu'il n'y a pas eu de connexion à DumbDisplay, c'est bloqué en attente de connexion BLE !
 //
@@ -12,11 +14,16 @@
 
 // General pour AI-C3 DUAL USBC esp32-c3 grand modèle avec LED RGB !
 // const int ledPin = 20;    // the number of the LED pin, c'est une LED RGB sur ce modèle
+const int ledPin = 8;             // the number of the LED pin
 const int buttonPin = 9;  // the number of the pushbutton pin
 
-// configuration du NeoPixel (LED RGB) pour ce modèle !
-#define RGB_BRIGHTNESS 10     // LED RGB brightness (max 255)
-#define RGB_BUILTIN 8         // Pin de la led RGB !
+const int zSonarPulseOn = 50;    // délai pour sonarPulse
+const int zSonarPulseOff = 100;    // délai pour sonarPulse
+const int zSonarPulseWait = 500;    // délai pour sonarPulse
+
+// // configuration du NeoPixel (LED RGB) pour ce modèle !
+// #define RGB_BRIGHTNESS 10     // LED RGB brightness (max 255)
+// #define RGB_BUILTIN 8         // Pin de la led RGB !
 
 // configuration de la console 'commune' (ATTENTION au saut de ligne '\' !)
 #define CONSOLEFLN(...)                 \
@@ -47,6 +54,8 @@ DumbDisplay dumbdisplay(new DDBLESerialIO("WIFI_SCANNER", true, 115200));
 TerminalDDLayer* terminal;      // for showing trace of reading data
 
 void setup_DD() {
+  USBSerial.println("En attente de connexion à DumbDisplay...");
+
   terminal = dumbdisplay.createTerminalLayer(1000, 1000);
   terminal->border(5, "blue");
   terminal->padding(5);
@@ -55,30 +64,37 @@ void setup_DD() {
 
 
 void setup() {
-    neopixelWrite(RGB_BUILTIN,RGB_BRIGHTNESS,0,0); 
-    USBSerial.begin(19200);
-    delay(3000);  //le temps de passer sur la Serial Monitor ;-)
-    USBSerial.println("\n\n\n\nCa commence !\n");
-    neopixelWrite(RGB_BUILTIN,0,0,RGB_BRIGHTNESS); 
+  // Pulse deux fois pour dire que l'on démarre
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW); delay(zSonarPulseOn); digitalWrite(ledPin, HIGH); delay(zSonarPulseOff);
+  digitalWrite(ledPin, LOW); delay(zSonarPulseOn); digitalWrite(ledPin, HIGH); delay(zSonarPulseOff);
+  delay(zSonarPulseWait);
 
-    setup_DD();     //configure DumbDisplay
+  // Start serial console
+  USBSerial.begin(19200);
+  USBSerial.setDebugOutput(true);       //pour voir les messages de debug des libs sur la console série !
+  delay(3000);                          //le temps de passer sur la Serial Monitor ;-)
+  USBSerial.println("\n\n\n\n**************************************\nCa commence !"); USBSerial.println(zVERSION);
 
-    setup_WIFI();   //configure WIFI
+  setup_DD();     //configure DumbDisplay
 
-    CONSOLEFLN("C'est parti !");
-    CONSOLEFLN("");
-    neopixelWrite(RGB_BUILTIN,RGB_BRIGHTNESS,RGB_BRIGHTNESS,RGB_BRIGHTNESS); 
-    delay(500);
+  setup_WIFI();   //configure WIFI
+
+  CONSOLEFLN("C'est parti !");
+  CONSOLEFLN("");
+  digitalWrite(ledPin, LOW);
+  delay(500);
 }
 
 
 void loop() {
     CONSOLEFLN("Scan start");
-    neopixelWrite(RGB_BUILTIN,0,0,0); 
+    digitalWrite(ledPin, HIGH);
     // WiFi.scanNetworks will return the number of networks found.
     int n = WiFi.scanNetworks();
     CONSOLEFLN("Scan done");
-    neopixelWrite(RGB_BUILTIN,0,RGB_BRIGHTNESS,0); 
+    digitalWrite(ledPin, LOW);
+
     if (n == 0) {
         CONSOLEFLN("no networks found");
     } else {
